@@ -2,19 +2,19 @@
 
 namespace blogpessoal.Service.Implements
 {
-    public interface IPostagemService
+    public interface ITemaService
     {
-        Task<IEnumerable<Postagem>> GetAll();
+        Task<IEnumerable<Tema>> GetAll();
 
-        Task<Postagem> GetById(long id);
+        Task<Tema> GetById(long id);
 
-        Task<IEnumerable<Postagem>> GetByTitulo(string titulo);
+        Task<IEnumerable<Tema>> GetByDescricao(string titulo);
 
-        Task<Postagem?> Create(Postagem postagem);
+        Task<Tema?> Create(Tema Tema);
 
-        Task<Postagem?> Update(Postagem postagem);
+        Task<Tema?> Update(Tema Tema);
 
-        Task Delete(Postagem postagem);
+        Task Delete(Tema Tema);
 
     }
 }
