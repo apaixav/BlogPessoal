@@ -16,5 +16,7 @@ namespace blogpessoal.Model
         [Column(TypeName = "varchar")]
         [StringLength(1000)]
         public string texto { get; set; } = string.Empty;
+
+        public virtual Tema? Tema { get; set; } 
     }
 }

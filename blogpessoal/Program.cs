@@ -5,6 +5,7 @@ using blogpessoal.Service.Implements;
 using blogpessoal.Validator;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace blogpessoal
 {
@@ -15,6 +16,12 @@ namespace blogpessoal
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            builder.Services.AddControllers()
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                });
 
             var connectionString = builder.Configuration
                 .GetConnectionString("DefaultConnection");

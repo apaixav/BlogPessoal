@@ -16,14 +16,18 @@ namespace blogpessoal.Service.Implements
 
         public async Task<IEnumerable<Postagem>> GetAll()
         {
-            return await _context.Postagens.ToListAsync();
+            return await _context.Postagens
+                .Include(p => p.Tema)
+                .ToListAsync();
         }
 
         public async Task<Postagem> GetById(long id)
         {
             try
             {
-                var PostagemUpdate = await _context.Postagens.FirstAsync(i => i.id == id);
+                var PostagemUpdate = await _context.Postagens
+                    .Include(p => p.Tema)
+                    .FirstAsync(i => i.id == id);
 
                 return PostagemUpdate;
             }
@@ -36,12 +40,22 @@ namespace blogpessoal.Service.Implements
         public async Task<IEnumerable<Postagem>> GetByTitulo(string titulo)
         {
             var Postagens = await _context.Postagens
+                .Include(p => p.Tema)
                 .Where(p =>p.titulo.Contains(titulo)) .ToListAsync();
             return Postagens;
         }
 
         public async Task<Postagem?> Create(Postagem postagem)
         {
+            if(postagem.Tema is not null)
+            {
+                var BuscaTema = await _context.Temas.FindAsync(postagem.Tema.id);
+
+                if (BuscaTema is null)
+                    return null;
+            }
+            postagem.Tema = postagem.Tema is not null ? _context.Temas.FirstOrDefault(t => t.id ==postagem.Tema.id) : null;
+
             await _context.Postagens.AddAsync(postagem);
             await _context.SaveChangesAsync();
 
@@ -54,6 +68,8 @@ namespace blogpessoal.Service.Implements
 
             if(PostagemUpdate is null)
                 return null;
+
+            postagem.Tema = postagem.Tema is not null ? _context.Temas.FirstOrDefault(t => t.id == postagem.Tema.id) : null;
 
             _context.Entry(PostagemUpdate).State = EntityState.Detached;
             _context.Entry(postagem).State = EntityState.Modified;
