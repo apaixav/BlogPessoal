@@ -1,9 +1,10 @@
 ﻿using blogpessoal.Model;
 
-namespace blogpessoal.Service.Implements
+namespace blogpessoal.Service
 {
     public interface ITemaService
     {
+        
         Task<IEnumerable<Tema>> GetAll();
 
         Task<Tema> GetById(long id);
@@ -15,6 +16,7 @@ namespace blogpessoal.Service.Implements
         Task<Tema?> Update(Tema Tema);
 
         Task Delete(Tema Tema);
+
 
     }
 }

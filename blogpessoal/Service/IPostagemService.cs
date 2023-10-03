@@ -1,6 +1,6 @@
 ﻿using blogpessoal.Model;
 
-namespace blogpessoal.Service.Implements
+namespace blogpessoal.Service
 {
     public interface IPostagemService
     {
@@ -15,6 +15,8 @@ namespace blogpessoal.Service.Implements
         Task<Postagem?> Update(Postagem postagem);
 
         Task Delete(Postagem postagem);
+
+
 
     }
 }
