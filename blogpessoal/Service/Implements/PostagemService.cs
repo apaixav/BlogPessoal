@@ -56,8 +56,7 @@ namespace blogpessoal.Service.Implements
 
                 if (BuscaTema is null)
                     return null;
-            }
-            postagem.Tema = postagem.Tema is not null ? _context.Temas.FirstOrDefault(t => t.id ==postagem.Tema.id) : null;
+            }         
 
             postagem.Usuario = postagem.Usuario is not null ? await _context.Users.FirstOrDefaultAsync(u => u.Id == postagem.Usuario.Id) : null;
 
@@ -72,9 +71,7 @@ namespace blogpessoal.Service.Implements
             var PostagemUpdate = await _context.Postagens.FindAsync(postagem.id);
 
             if(PostagemUpdate is null)
-                return null;
-
-            postagem.Tema = postagem.Tema is not null ? _context.Temas.FirstOrDefault(t => t.id == postagem.Tema.id) : null;
+                return null;           
 
             postagem.Usuario = postagem.Usuario is not null ? await _context.Users.FirstOrDefaultAsync(u => u.Id == postagem.Usuario.Id) : null;
 
