@@ -14,14 +14,12 @@ using Xunit.Extensions.Ordering;
 
 namespace BlogPessoalTeste.Controller
 {
-    internal class UserControllerTest : IClassFixture<WebAppFactory>
+    public class UserControllerTest : IClassFixture<WebAppFactory>
     {
-
         protected readonly WebAppFactory _factory;
         protected HttpClient _client;
 
         private readonly dynamic token;
-
         private string Id { get; set; } = string.Empty;
 
         public UserControllerTest(WebAppFactory factory)
@@ -30,8 +28,8 @@ namespace BlogPessoalTeste.Controller
             _client = factory.CreateClient();
 
             token = GetToken();
-
         }
+
         private static dynamic GetToken()
         {
             dynamic data = new ExpandoObject();
@@ -40,117 +38,127 @@ namespace BlogPessoalTeste.Controller
         }
 
         [Fact, Order(1)]
-        public async Task DeveCriarUmUsuario()
+        public async Task DeveCriarNovoUsuario()
         {
-            var novoUsuario = new Dictionary<string, string>()
+            var novoUsuario = new Dictionary<string, string>
             {
-                {"nome","Ingrid" },
-                {"usuario", "ingrid@email.com" },
-                {"senha", "123456789" },
-                {"foto","" }
+                {"nome" , "João"},
+                {"usuario", "joao@email.com"},
+                {"senha", "12345678" },
+                {"foto", "-"}
             };
-
             var usuarioJson = JsonConvert.SerializeObject(novoUsuario);
-            var corpoRequisicao = new StringContent(usuarioJson, Encoding.UTF8, "application/json");
-
-            var resposta = await _client.PostAsync("/usuario/cadastrar", corpoRequisicao);
-
+            var corpoRequisicao = new StringContent(usuarioJson, Encoding.UTF8, "application/Json");
+            var resposta = await _client.PostAsync("/usuarios/cadastrar", corpoRequisicao);
             resposta.EnsureSuccessStatusCode();
-
             resposta.StatusCode.Should().Be(HttpStatusCode.Created);
         }
         [Fact, Order(2)]
-        public async Task DeveDarErroEmail()
+        public async Task NaoDeveCriarUsuarioDuplicado()
         {
-            var novoUsuario = new Dictionary<string, string>()
+            var novoUsuario = new Dictionary<string, string>
             {
                 {"nome","Ingrid" },
                 {"usuario", "ingridemail.com" },
-                {"senha", "123456789" },
-                {"foto","" }
+                {"senha", "12345678" },
+                {"foto", "-"}
             };
-
             var usuarioJson = JsonConvert.SerializeObject(novoUsuario);
-            var corpoRequisicao = new StringContent(usuarioJson, Encoding.UTF8, "application/json");
-
-            var resposta = await _client.PostAsync("/usuario/cadastrar", corpoRequisicao);
-
-            //resposta.EnsureSuccessStatusCode();
+            var corpoRequisicao = new StringContent(usuarioJson, Encoding.UTF8, "application/Json");
+            await _client.PostAsync("/usuarios/cadastrar", corpoRequisicao);
+            var resposta = await _client.PostAsync("/usuarios/cadastrar", corpoRequisicao);
 
             resposta.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
+
 
         [Fact, Order(3)]
-        public async Task NaoDeveCriarUsuarioDuplicado()
+        public async Task DeveAtualizarUsuario()
         {
-            var novoUsuario = new Dictionary<string, string>()
+            var novoUsuario = new Dictionary<string, string>
             {
-                {"nome","Karina" },
-                {"usuario", "Karinaemail.com" },
-                {"senha", "123456789" },
-                {"foto","" }
+                { "nome", "Paulo Antunes" },
+                { "usuario", "paulo@email.com.br" },
+                { "senha", "12345678" },
+                { "foto", "-" }
             };
-
-            var usuarioJson = JsonConvert.SerializeObject(novoUsuario);
-            var corpoRequisicao = new StringContent(usuarioJson, Encoding.UTF8, "application/json");
-
-            await _client.PostAsync("/usuario/cadastrar", corpoRequisicao);
-
-            var resposta = await _client.PostAsync("/usuario/cadastrar", corpoRequisicao);
-            //resposta.EnsureSuccessStatusCode();
-
-            resposta.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            var postJson = JsonConvert.SerializeObject(novoUsuario);
+            var corpoRequisicaoPost = new StringContent(postJson, Encoding.UTF8, "application/json");
+            var respostaPost = await _client.PostAsync("/usuarios/cadastrar", corpoRequisicaoPost);
+            var corpoRespostaPost = await respostaPost.Content.ReadFromJsonAsync<User>();
+            if (corpoRespostaPost is not null)
+            {
+                Id = corpoRespostaPost.Id.ToString();
+            }
+            var atualizarUsuario = new Dictionary<string, string>
+            {
+                {"id", Id },
+                {"nome" , "José"},
+                {"usuario", "jose@email.com"},
+                {"senha", "12345678" },
+                {"foto", "-"}
+            };
+            var updateJson = JsonConvert.SerializeObject(atualizarUsuario);
+            var corpoRequisicaoUpdate = new StringContent(updateJson, Encoding.UTF8, "application/Json");
+            _client.SetFakeBearerToken((object)token);
+            var respostaPut = await _client.PutAsync("/usuarios/atualizar", corpoRequisicaoUpdate);
+            respostaPut.StatusCode.Should().Be(HttpStatusCode.OK);
         }
-
         [Fact, Order(4)]
         public async Task DeveListarTodosUsuarios()
         {
             _client.SetFakeBearerToken((object)token);
-
-            var resposta = await _client.GetAsync("/usuario/all");
-
+            var resposta = await _client.GetAsync("/usuarios/all");
             resposta.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact, Order(5)]
+        public async Task DeveListarUmUsuario()
+        {
+            var novoUsuario = new Dictionary<string, string>
+            {
+                { "nome", "Ana Paula" },
+                { "usuario", "anapaula@email.com.br" },
+                { "senha", "12345678" },
+                { "foto", "-" }
+            };
+            var usuarioJson = JsonConvert.SerializeObject(novoUsuario);
+            var corpoRequisicaoPost = new StringContent(usuarioJson, Encoding.UTF8, "application/json");
+            var respostaPost = await _client.PostAsync("/usuarios/cadastrar", corpoRequisicaoPost);
+            respostaPost.EnsureSuccessStatusCode();
+            _client.SetFakeBearerToken((object)token);
+            var corpoRespostaPost = await respostaPost.Content.ReadFromJsonAsync<User>();
+            var idUsuarioCriado = corpoRespostaPost.Id.ToString();
+            var respostaGet = await _client.GetAsync($"/usuarios/{idUsuarioCriado}");
+            respostaGet.StatusCode.Should().Be(HttpStatusCode.OK);
 
         }
-        [Fact, Order(5)]
-        public async Task DeveAtualizarUmUsuario()
+        [Fact, Order(6)]
+        public async Task DeveAutenticarUmUsuario()
         {
-            var novoUsuario = new Dictionary<string, string>()
+            var novoUsuario = new Dictionary<string, string>
             {
-                {"nome","João" },
-                {"usuario", "João@email.com" },
-                {"senha", "123456789" },
-                {"foto","" }
+                { "nome", "Paulo" },
+                { "usuario", "paulo@email.com.br" },
+                { "senha", "12345678" },
+                { "foto", "-" }
             };
-
             var usuarioJson = JsonConvert.SerializeObject(novoUsuario);
-            var corpoRequisicao = new StringContent(usuarioJson, Encoding.UTF8, "application/json");
+            var corpoRequisicaoPost = new StringContent(usuarioJson, Encoding.UTF8, "application/json");
+            var respostaPost = await _client.PostAsync("/usuarios/cadastrar", corpoRequisicaoPost);
+            respostaPost.EnsureSuccessStatusCode();
 
-            var resposta = await _client.PostAsync("/usuario/cadastrar", corpoRequisicao);
-
-            var corpoRespostaPost = await resposta.Content.ReadFromJsonAsync<User>();
-
-            if(corpoRespostaPost != null)
+            var usuario = new Dictionary<string, string>
             {
-                Id = corpoRespostaPost.Id.ToString();
-            }
-            var atualizarUsuario = new Dictionary<string, string>()
-            {
-                {"id",Id },
-                {"nome","João" },
-                {"usuario", "João@email.com" },
-                {"senha", "123456789" },
-                {"foto","" }
+                {"usuario", "paulo@email.com.br"},
+                {"senha", "12345678" }
             };
 
-            var usuarioJsonAtualizar = JsonConvert.SerializeObject(novoUsuario);
-            var corpoRequisicaoAtualizar = new StringContent(usuarioJson, Encoding.UTF8, "application/json");
-           
-            _client.SetFakeBearerToken((object)token);
+            var autenticaJson = JsonConvert.SerializeObject(usuario);
+            var corpoRequisicao = new StringContent(autenticaJson, Encoding.UTF8, "application/Json");
 
-            var respostaPut = await _client.PutAsync("/usuarios/atualizar",corpoRequisicaoAtualizar); 
-
-            resposta.StatusCode.Should().Be(HttpStatusCode.Created);
+            var resposta = await _client.PostAsync("/usuarios/logar", corpoRequisicao);
+            resposta.StatusCode.Should().Be(HttpStatusCode.OK);
 
         }
     }

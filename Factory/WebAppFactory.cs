@@ -14,7 +14,7 @@ using WebMotions.Fake.Authentication.JwtBearer;
 
 namespace BlogPessoalTeste.Factory
 {
-    internal class WebAppFactory : WebApplicationFactory<Program>
+    public class WebAppFactory : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
