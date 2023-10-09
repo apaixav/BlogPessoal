@@ -58,7 +58,7 @@ namespace blogpessoal.Service.Implements
                     return null;
 
                 postagem.Tema = BuscaTema;
-            }         
+            }
 
             postagem.Usuario = postagem.Usuario is not null ? await _context.Users.FirstOrDefaultAsync(u => u.Id == postagem.Usuario.Id) : null;
 

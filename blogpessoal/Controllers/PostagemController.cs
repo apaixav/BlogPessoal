@@ -60,9 +60,9 @@ namespace blogpessoal.Controllers
             var Resposta = await _postagemService.Create(postagem);
 
             if (Resposta is null)
-                return BadRequest("Tema não encontrado");
+                return BadRequest("Tema não encontrado!");
 
-            return CreatedAtAction(nameof(GetById), new {Id = postagem.id}, postagem);
+            return CreatedAtAction(nameof(GetById), new { Id = postagem.id }, postagem);
         }
 
         [HttpPut]
