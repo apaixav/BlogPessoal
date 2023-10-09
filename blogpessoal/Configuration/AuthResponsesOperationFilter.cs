@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Xml;
 
 namespace blogpessoal.Configuration
 {
@@ -12,28 +13,20 @@ namespace blogpessoal.Configuration
                 .Any(options => options is AllowAnonymousAttribute))
             {
                 operation.Security = new List<OpenApiSecurityRequirement> {
-                new OpenApiSecurityRequirement{
-
-
-
-
-                    {
+                    new OpenApiSecurityRequirement{
+                        {
                         new OpenApiSecurityScheme
                         {
                             Reference = new OpenApiReference
                             {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "JWT"
+                                Type = ReferenceType.SecurityScheme, Id = "JWT"
                             }
+                        }, Array.Empty<string>()
 
-                        }, Array.Empty <string>()
+                        }
+
                     }
-
-                }
-
                 };
-            
-                
             }
         }
     }
