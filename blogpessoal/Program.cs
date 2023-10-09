@@ -1,4 +1,5 @@
 
+using blogpessoal.Configuration;
 using blogpessoal.Data;
 using blogpessoal.Model;
 using blogpessoal.Security;
@@ -7,10 +8,12 @@ using blogpessoal.Service;
 using blogpessoal.Service.Implements;
 using blogpessoal.Validator;
 using FluentValidation;
+using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 namespace blogpessoal
@@ -29,12 +32,27 @@ namespace blogpessoal
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });
 
-            var connectionString = builder.Configuration
-                .GetConnectionString("DefaultConnection");
+            if (builder.Configuration["Enviroment:Start"] == "PROD")
+            {
+                builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("secrets.json");
 
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                 options.UseSqlServer(connectionString)
-            );
+                var connectionString = builder.Configuration
+                .GetConnectionString("ProdConnection");
+
+                builder.Services.AddDbContext<AppDbContext>(options =>
+                     options.UseNpgsql(connectionString));
+
+            }else
+            {
+                var connectionString = builder.Configuration
+                    .GetConnectionString("DefaultConnection");
+
+                builder.Services.AddDbContext<AppDbContext>(options =>
+                     options.UseSqlServer(connectionString)
+                );
+
+            }
 
             builder.Services.AddTransient<IValidator<Postagem>, PostagemValidator>();
             builder.Services.AddTransient<IValidator<Tema>, TemaValidator>();
@@ -69,7 +87,38 @@ namespace blogpessoal
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Version = "v1",
+                    Title = "Projeto Blog Pessoal",
+                    Description = "Projeto Blog Pessoal ASP.NET Core 7.0",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Lucas Ribeiro Paixão",
+                        Email = "lucasrib01@gmail.com",
+                        Url = new Uri("https://github.com/apaixav")
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "Github",
+                        Url = new Uri("https://github.com/apaixav")
+                    }
+                });
+                options.AddSecurityDefinition("JWT", new OpenApiSecurityScheme
+                {
+                    In= ParameterLocation.Header,
+                    Description = "Digite um Token Jwt válido",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme= "Bearer"
+                });
+                options.OperationFilter<AuthResponsesOperationFilter>();
+            });
+
+            builder.Services.AddFluentValidationRulesToSwagger();
 
             builder.Services.AddCors(options =>
             {
@@ -90,11 +139,19 @@ namespace blogpessoal
             }
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            
+            
                 app.UseSwagger();
-                app.UseSwaggerUI();
+
+            if (app.Environment.IsProduction())
+            {
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("(/swagger/v1/swagger.json/", "Blog Pessoal - v1");
+                    options.RoutePrefix = string.Empty;
+                });
             }
+            
 
             app.UseCors("MyPolicy");
 
