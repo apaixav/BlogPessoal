@@ -11,7 +11,6 @@ using FluentValidation;
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -29,21 +28,21 @@ namespace blogpessoal
             builder.Services.AddControllers()
                 .AddNewtonsoftJson(options =>
                 {
+                    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 });
 
             if (builder.Configuration["Enviroment:Start"] == "PROD")
             {
-                builder.Configuration.SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("secrets.json");
+                builder.Configuration.SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("secrets.json");
 
                 var connectionString = builder.Configuration
-                .GetConnectionString("ProdConnection");
+                   .GetConnectionString("ProdConnection");
 
                 builder.Services.AddDbContext<AppDbContext>(options =>
-                     options.UseNpgsql(connectionString));
-
-            }else
+                    options.UseNpgsql(connectionString));
+            }
+            else
             {
                 var connectionString = builder.Configuration
                     .GetConnectionString("DefaultConnection");
@@ -139,9 +138,11 @@ namespace blogpessoal
             }
 
             // Configure the HTTP request pipeline.
-            
-            
+                app.UseDeveloperExceptionPage();
+
                 app.UseSwagger();
+
+                app.UseSwaggerUI();
 
             if (app.Environment.IsProduction())
             {
